@@ -1,0 +1,545 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>A Special Delivery</title> 
+    <style> 
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #EBE9E1; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            color: #333; 
+            overflow-x: hidden; 
+        } 
+        
+        .scene { 
+            perspective: 1000px; 
+            width: 100%; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            position: relative; 
+            padding: 20px; 
+            transition: all 0.8s ease-in-out;
+        }
+        
+        .scene.fullscreen {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            background-color: rgba(235, 233, 225, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .sky { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: -1; 
+        } 
+        
+        .pigeon { 
+            position: absolute; 
+            width: 100px; 
+            height: 100px; 
+            top: -100px; 
+            left: -100px; 
+            z-index: 10; 
+            transition: all 3s ease-in-out; 
+        } 
+        
+        .pigeon img { 
+            width: 100%; 
+            height: 100%; 
+        } 
+        
+        .pigeon.fly { 
+            animation: flyPath 4s forwards; 
+        } 
+        
+        @keyframes flyPath { 
+            0% { 
+                top: -100px; 
+                left: -100px; 
+                transform: rotate(30deg) scale(0.8); 
+            } 
+            40% { 
+                top: 20%; 
+                left: 40%; 
+                transform: rotate(15deg) scale(1); 
+            } 
+            70% { 
+                top: 40%; 
+                left: 50%; 
+                transform: rotate(0deg) scale(1.1); 
+            } 
+            100% { 
+                top: 45%; 
+                left: 50%; 
+                transform: rotate(-10deg) scale(1); 
+                opacity: 0; 
+            } 
+        } 
+        
+        .envelope { 
+            width: 400px; 
+            height: 280px; 
+            margin: 120px auto 30px; 
+            position: relative; 
+            transform-style: preserve-3d; 
+            transform: rotateX(0deg); 
+            transition: transform 1s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out; 
+            opacity: 0; 
+        } 
+        
+        .envelope.dropped { 
+            opacity: 1; 
+            animation: bounce 0.5s ease-in-out; 
+        } 
+        
+        @keyframes bounce { 
+            0% { 
+                transform: translateY(-200px) rotateX(-20deg); 
+                opacity: 1; 
+            } 
+            60% { 
+                transform: translateY(30px) rotateX(15deg); 
+            } 
+            80% { 
+                transform: translateY(-10px) rotateX(-5deg); 
+            } 
+            100% { 
+                transform: translateY(0) rotateX(0deg); 
+            } 
+        } 
+        
+        .envelope.open { 
+            transform: rotateX(180deg);
+            width: 90vw;
+            height: 90vh;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1001;
+        } 
+        
+        .envelope-front { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            background-color: #D6536D; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            backface-visibility: hidden; 
+            overflow: hidden; 
+        } 
+        
+        .envelope-front:after { 
+            content: ''; 
+            position: absolute; 
+            width: 0; 
+            height: 0; 
+            border-left: 200px solid transparent; 
+            border-right: 200px solid transparent; 
+            border-top: 140px solid #E43D12; 
+            bottom: 0; 
+            opacity: 0.2; 
+        } 
+        
+        .envelope-front:before { 
+            content: ''; 
+            position: absolute; 
+            width: 100%; 
+            height: 60px; 
+            background: #E43D12; 
+            bottom: 0; 
+            opacity: 0.4; 
+        } 
+        
+        .seal { 
+            width: 80px; 
+            height: 80px; 
+            background: #EFB11D; 
+            border-radius: 50%; 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            z-index: 2; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            color: #D6536D; 
+            font-weight: bold; 
+            font-size: 28px; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1); 
+            cursor: pointer; 
+        } 
+        
+        .seal:hover { 
+            transform: translate(-50%, -50%) scale(1.1); 
+        } 
+        
+        .envelope-back { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            transform: rotateX(180deg); 
+            backface-visibility: hidden; 
+        } 
+        
+        .invitation { 
+            width: 380px; 
+            height: 460px; 
+            background-color: #F5E9D3; 
+            position: relative; 
+            border: 1px solid #DBC59E; 
+            background-size: cover; 
+            background-position: center; 
+            border-radius: 8px; 
+            padding: 25px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); 
+            text-align: center; 
+            position: relative; 
+            overflow: auto;
+            transform: translateY(-80px); 
+            color: #3A2921; 
+            transition: width 0.8s ease-in-out, height 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+        
+        .invitation.fullscreen {
+            width: 80vw;
+            height: 80vh;
+            transform: translateY(0);
+            margin: 0 auto;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        h1 { 
+            color: #5D1A0F; 
+            margin-bottom: 20px; 
+            font-size: 2rem; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
+        } 
+        
+        p { 
+            font-size: 1.1rem; 
+            line-height: 1.6; 
+            margin-bottom: 18px; 
+        } 
+        
+        .highlight { 
+            color: #5D1A0F; 
+            font-weight: bold; 
+        } 
+        
+        .meet-btn { 
+            display: inline-block; 
+            background: linear-gradient(to right, #5D1A0F, #8B4513); 
+            color: white; 
+            padding: 14px 28px; 
+            border-radius: 50px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            margin-top: 20px; 
+            transition: transform 0.3s, box-shadow 0.3s; 
+            cursor: pointer; 
+        } 
+        
+        .meet-btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 15px rgba(93, 26, 15, 0.4); 
+        } 
+        
+        .hearts { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            top: 0; 
+            left: 0; 
+            pointer-events: none; 
+            z-index: -1; 
+        } 
+        
+        .heart { 
+            position: absolute; 
+            font-size: 15px; 
+            color: rgba(93, 26, 15, 0.3); 
+            animation: float 6s infinite ease-in-out; 
+        } 
+        
+        @keyframes float { 
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg); 
+            } 
+            50% { 
+                transform: translateY(-15px) rotate(10deg); 
+            } 
+        } 
+        
+        .note { 
+            font-style: italic; 
+            margin-top: 20px; 
+            color: #4A3C2E; 
+            font-size: 1rem; 
+        } 
+        
+        .signature { 
+            margin-top: 25px; 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            color: #5D1A0F; 
+        } 
+        
+        .countdown { 
+            margin: 20px 0; 
+            font-size: 1rem; 
+            color: #4A3C2E; 
+        } 
+        
+        .time-display { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            color: #8B4513; 
+        } 
+        
+        .instructions { 
+            text-align: center; 
+            color: #5D1A0F; 
+            font-size: 1.2rem; 
+            margin-bottom: 10px; 
+            font-style: italic; 
+            animation: pulse 2s infinite; 
+        } 
+        
+        @keyframes pulse { 
+            0%, 100% { 
+                opacity: 0.7; 
+            } 
+            50% { 
+                opacity: 1; 
+            } 
+        } 
+        
+        .skip-btn { 
+            background: none; 
+            border: none; 
+            color: #8B4513; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            margin-top: 20px; 
+            text-decoration: underline; 
+        } 
+        
+        .cloud { 
+            position: absolute; 
+            background: white; 
+            opacity: 0.8; 
+            border-radius: 50%; 
+        } 
+        
+        @media (max-width: 500px) { 
+            .envelope { 
+                width: 320px; 
+                height: 220px; 
+            } 
+            
+            .envelope.open {
+                width: 95vw;
+                height: 95vh;
+            }
+            
+            .invitation { 
+                width: 300px; 
+                height: 430px; 
+                padding: 20px; 
+            }
+            
+            .invitation.fullscreen {
+                width: 90vw;
+                height: 90vh;
+                padding: 15px;
+            }
+            
+            h1 { 
+                font-size: 1.7rem; 
+            } 
+            
+            p { 
+                font-size: 1rem; 
+            } 
+        } 
+    </style> 
+</head> 
+<body> 
+    <div class="scene" id="scene"> 
+        <div class="sky" id="sky"></div> 
+        <div class="instructions" id="instructions">A special delivery is on its way...</div>
+        <div class="pigeon" id="pigeon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path fill="#707070" d="M440.6 68c28.1 43.9 24.8 103.8-8.3 147c-24.6 31.8-45.1 37.9-59.9 46c-4.9 2.7-10.1 5.5-14.9 8.9c-5.9 4.2-11.4 9.1-16.4 14.4c-3.1-11.3-8.8-21.9-16.9-30.7c-.6-3.4-2.5-6.5-5.4-8.4L324 251.7C337.6 229 344 203 344 176C344 112.4 308.1 57.7 257.6 33c-.1 0-.1-.1-.2-.1C256.5 32.6 255.3 32 254 32s-2.5.6-3.5.9c-.1.1-.1.1-.2.1C199.9 57.7 164 112.5 164 176c0 39.1 10.4 75.9 28.4 107.6l-54.8 54.8L127 339.5c-10.2 8.5-16.4 21-4.8 33.3l43.3 43.3 0 48c49.1 0 96.4 19.3 131.5 53.9l6.5-6.5c9.5-9.5 14.1-22.1 13.3-34.6l-6.2-91.3c-1.2-8.2 3.4-16.1 10.9-19.5l67.3-29.7c10-4.4 19.2-10.5 26.9-18.2c13.1-13 22.4-29.1 26.6-47c4.3-17.9 0-42.4-13.9-68.2C441.1 100 432.2 78.4 400.4 62c13.7-1.1 27.7 1.7 40.2 6z"/>
+                <path fill="#909090" d="M172.2 253.2C159 226.7 152 191.7 152 176c0-45.1 20.6-85.4 53.2-112.2C213 78.8 223.9 96 240.9 96c17.1 0 28.3-21.9 34.3-40.8C292.2 74.8 304 99 304 176c0 8.8-.8 17.2-2.3 25.2c-33.3 4.6-56.1 23.3-60.2 26.6c.1-28-.3-66.4-48.9-66.4C174.8 161.4 173.3 207.7 172.2 253.2z"/>
+                <path fill="#E0E0E0" d="M169.4 387.1l-37.7-37.7 24.202-24.201 4.699 4.7 37.7 37.7-29 19.5zM339.6 315.1l-67.3 29.7c-18.1 8-28.9 27.1-25.9 46.6l6.2 91.3c.3 3.9-1.1 7.8-4 10.7L245 497c-28.9-26.4-67.2-42.8-109-39.1l1.2-46c.1-2.5-.8-5-2.7-6.8l-49.1-49.1c-.1-.1-.1-.2-.1-.3l22.7-33.8 51.8-51.8c5.3 5.8 12.3 10.3 20 12.8l100 32.2c19.4 6.2 40.8-1.9 52.7-19.8l37.9-57.4c4.7 4 11.2 5.4 17.3 3.1l48.9-18.1C361.3 281.2 349.6 301.1 339.6 315.1z"/>
+            </svg>
+        </div>
+        
+        <div class="envelope" id="envelope">
+            <div class="envelope-front">
+                <div class="seal" id="seal">❤</div>
+            </div>
+            <div class="envelope-back">
+                <div class="invitation" id="invitation">
+                    <div class="hearts" id="hearts"></div>
+                    <h1>A Special Invitation</h1>
+                    <p>Dear <span class="highlight">Potato</span>,</p>
+                    <p>I know things have been a bit rocky between us lately, and I know u are trying to distance yourself from me, but its my responsiblity to try.</p>
+                    <p>Would you join me for a <span class="highlight">a virtual sleepover</span> with another potato.</p>
+                    <p>Sometimes words arent enough to express feelings, but seeing each other can be a big relief, it makes it very easy to understand the other person. I value what we have and believe we can overcome any challenge.</p>
+                    <p>I've been thinking about all the wonderful moments we've shared, and I promise u that things will get better and this is a promise i dont mean to break.</p>
+                    <div class="countdown">
+                        <p>Our call is scheduled for:</p>
+                        <p class="time-display" id="meetTime">Tuesday May 6, 10:30 PM</p>
+                        <p id="countdownDisplay"></p>
+                    </div>
+                    <button onclick="window.location.href='https://meet.google.com/iju-fvyi-gau'" class="meet-btn" id="meetBtn">Join Our Call</button>
+                    <p class="note">I miss you and your cute smile. Hoping to see u in meet.</p>
+                    <p class="signature">With love, Momo</p>
+                </div
+            </div>
+        </div>
+        
+        <button class="skip-btn" id="skipBtn">Skip animation</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create clouds in the sky
+            const sky = document.getElementById('sky');
+            for (let i = 0; i < 15; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const size = Math.random() * 60 + 40;
+                cloud.style.width = size + 'px';
+                cloud.style.height = size * 0.6 + 'px';
+                cloud.style.left = Math.random() * 100 + '%';
+                cloud.style.top = Math.random() * 60 + '%';
+                sky.appendChild(cloud);
+            }
+            
+            // Create floating hearts background
+            const heartsContainer = document.getElementById('hearts');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤';
+                heart.className = 'heart';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.top = Math.random() * 100 + '%';
+                heart.style.fontSize = (Math.random() * 15 + 8) + 'px';
+                heart.style.opacity = Math.random() * 0.5 + 0.1;
+                heart.style.animationDuration = (Math.random() * 6 + 4) + 's';
+                heart.style.animationDelay = (Math.random() * 5) + 's';
+                heartsContainer.appendChild(heart);
+            }
+            
+            // Animation sequence
+            const scene = document.getElementById('scene');
+            const pigeon = document.getElementById('pigeon');
+            const envelope = document.getElementById('envelope');
+            const invitation = document.getElementById('invitation');
+            const instructions = document.getElementById('instructions');
+            const skipBtn = document.getElementById('skipBtn');
+            
+            function startAnimation() {
+                setTimeout(() => {
+                    pigeon.classList.add('fly');
+                    
+                    setTimeout(() => {
+                        envelope.classList.add('dropped');
+                        instructions.textContent = 'Click the seal to open...';
+                        
+                        document.getElementById('seal').addEventListener('click', function() {
+                            envelope.classList.add('open');
+                            setTimeout(() => {
+                                scene.classList.add('fullscreen');
+                                invitation.classList.add('fullscreen');
+                                instructions.textContent = '';
+                                skipBtn.style.display = 'none';
+                            }, 500);
+                        });
+                    }, 4000);
+                }, 1000);
+            }
+            
+            // Skip button
+            skipBtn.addEventListener('click', function() {
+                pigeon.style.display = 'none';
+                envelope.classList.add('dropped');
+                envelope.classList.add('open');
+                scene.classList.add('fullscreen');
+                invitation.classList.add('fullscreen');
+                instructions.textContent = '';
+                skipBtn.style.display = 'none';
+            });
+            
+            // Start animation
+            startAnimation();
+            
+            // Set up countdown timer to meeting
+            // Change this to your actual meeting time
+            const meetingDate = new Date(); // Current date
+            meetingDate.setDate(meetingDate.getDate() + 1); // Set it to tomorrow
+            meetingDate.setHours(22, 30, 0); // Set time to 7:00 PM
+            
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('meetTime').textContent = meetingDate.toLocaleDateString(undefined, options);
+            
+            // Update countdown
+            function updateCountdown() {
+                const now = new Date();
+                const diff = meetingDate - now;
+                
+                if (diff <= 0) {
+                    document.getElementById('countdownDisplay').textContent = "It's time for our call!";
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdownDisplay').textContent = 
+                    `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+    </script>
+</body> 
+</html>
